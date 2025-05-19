@@ -43,7 +43,7 @@ export default function HomeScreen() {
         <ActivityIndicator color="black" />
       ) : (
         <>
-          <Text style={styles.text}>{weather.time.toString()}</Text>
+          <Text style={styles.text}>{weather.time.toDateString()}</Text>
             <Text style={styles.temperature}>{weather.temperature2m.toFixed(0)}°C</Text>
         </>
       )}
