@@ -11,15 +11,9 @@ export default function WelcomeScreen() {
       <Text style={styles.text}>Welcome to the weather app</Text>
       <Pressable 
         style={styles.button}
-        onPress={() => router.push('/(tabs)/randwick')}
+        onPress={() => router.push('/location')}
       >
-        <Text style={styles.buttonText}>Randwick</Text>
-      </Pressable>
-      <Pressable
-        style={styles.button}
-        onPress={() => router.push('/(tabs)/chennai')}
-      >
-        <Text style={styles.buttonText}>Chennai</Text>
+        <Text style={styles.buttonText}>Continue</Text>
       </Pressable>
     </View>
   );

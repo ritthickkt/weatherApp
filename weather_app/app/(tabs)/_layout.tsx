@@ -8,15 +8,9 @@ export default function TabLayout() {
       tabBarStyle: { display: 'none' }  // This hides the tab bar
     }}>
       <Tabs.Screen
-        name="randwick"
+        name="entryScreen"
         options={{
-          title: 'Randwick Weather',
-        }}
-      />
-      <Tabs.Screen
-        name="chennai"
-        options={{
-          title: 'Chennai Weather',
+          title: 'View Location',
         }}
       />
     </Tabs>
