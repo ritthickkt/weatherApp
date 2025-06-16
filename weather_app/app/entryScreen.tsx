@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView, BackHandler } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView, BackHandler, Animated } from 'react-native';
 import { fetchWeatherApi } from 'openmeteo';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 
-export default function LocationScreen() {
-  const {cityName, latitude, longitude } = useLocalSearchParams();
 
+export default function LocationScreen() {
+  
+  const {cityName, latitude, longitude } = useLocalSearchParams();
+  
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [weather, setWeather] = useState<{ time: Date; temperature2m: number } | null>(null);
   const [loading, setLoading] = useState(false);
-
+  
   useEffect(() => {
     if (cityName && latitude && longitude) {
       getWeather(cityName as string);
@@ -41,34 +44,46 @@ export default function LocationScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{ marginVertical: 20 }}>
-            <Text style={styles.buttonText}>{selectedCity}</Text>
-      </View>
-      {loading && <ActivityIndicator color="white" />}
-      {weather && (
-        <View>
-          <Text style={styles.text}>{weather.time.toDateString()}</Text>
-          <Text style={styles.temperature}>{weather.temperature2m.toFixed(0)}°C</Text>
+    <LinearGradient
+      colors={[
+        'rgba(2, 0, 36, 1)',       
+        'rgba(9, 9, 121, 1)',      
+        'rgba(0, 212, 255, 1)'     
+      ]}
+      start={{ x: 0, y: 1 }}
+      end={{ x: 0, y: 0 }}
+      style={styles.container}
+    >
+        <View style={styles.cityName}>
+              <Text style={styles.buttonText}>{selectedCity}</Text>
         </View>
-      )}
-      <View style={styles.backButtonContainer}>
-        <Pressable
-            onPress={() => router.push('../welcome')}
-          >
-            <Text style={styles.backButton}>Back</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+        {loading && <ActivityIndicator color="white" />}
+        {weather && (
+          <View>
+            <Text style={styles.temperature}>{weather.temperature2m.toFixed(0)}</Text>
+            <Text style={styles.text}>{weather.time.toDateString()}</Text>
+          </View>
+        )}
+        <View style={styles.backButtonContainer}>
+          <Pressable
+              onPress={() => router.push('/')}
+              >
+              <Text style={styles.backButton}>Back</Text>
+          </Pressable>
+        </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  cityName: {
+    position: 'absolute',
+    top: 70,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
   },
   text: {
     color: 'white',
@@ -86,25 +101,28 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 25,
   },
   temperature: {
-    fontSize: 48,
+    fontSize: 120,
+    fontWeight: 'bold',
+    shadowColor: 'black',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
     color: 'white',
     marginTop: 10,
     textAlign: 'center',
   },
   backButton: {
     position: 'absolute',
-    left: 20,
-    bottom: 20,
-    backgroundColor: '#007AFF',
-    borderRadius: 5,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    top: -785,
+    backgroundColor: 'red',
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     color: 'white',
     fontSize: 16,
-    overflow: 'hidden',
+    fontWeight: 'bold',
   },
   backButtonContainer: {
     position: 'absolute',
