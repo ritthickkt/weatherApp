@@ -1,14 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView, BackHandler, Animated } from 'react-native';
 import { fetchWeatherApi } from 'openmeteo';
+import { useFonts } from 'expo-font';
+import { BlurView } from 'expo-blur';
+import { useSharedValue, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 
 
 export default function LocationScreen() {
-  
+  const [fontsLoaded] = useFonts({
+    'TemperatureFont': require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
   const {cityName, latitude, longitude } = useLocalSearchParams();
-  
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [weather, setWeather] = useState<{ time: Date; temperature2m: number } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,10 +43,21 @@ export default function LocationScreen() {
       time: new Date((Number(current.time()) + utcOffsetSeconds) * 1000),
       temperature2m: current.variables(0).value(),
     });
-    console.log('Latitude:', latitude);
-    console.log('Longitude:', longitude);
     setLoading(false);
   };
+
+  const randomWidth = useSharedValue(10);
+
+  const config = {
+    duration: 500,
+    easing: Easing.bezier(0.5, 0.01, 0, 1),
+  };
+  
+  const style = useAnimatedStyle(() => {
+    return {
+      width: withTiming(randomWidth.value, config),
+    };
+  });
 
   return (
     <LinearGradient
@@ -54,23 +70,24 @@ export default function LocationScreen() {
       end={{ x: 0, y: 0 }}
       style={styles.container}
     >
-        <View style={styles.cityName}>
-              <Text style={styles.buttonText}>{selectedCity}</Text>
+      <View style={styles.cityName}>
+        <Animated.View style={[styles.cityName, style]} />
+        <Text style={styles.buttonText}>{selectedCity}</Text>
+      </View>
+      {loading && <ActivityIndicator color="white" />}
+      {weather && (
+        <View>
+          <Text style={styles.temperature}>{weather.temperature2m.toFixed(0)}</Text>
+          <Text style={styles.text}>{weather.time.toDateString()}</Text>
         </View>
-        {loading && <ActivityIndicator color="white" />}
-        {weather && (
-          <View>
-            <Text style={styles.temperature}>{weather.temperature2m.toFixed(0)}</Text>
-            <Text style={styles.text}>{weather.time.toDateString()}</Text>
-          </View>
-        )}
-        <View style={styles.backButtonContainer}>
-          <Pressable
-              onPress={() => router.push('/')}
-              >
-              <Text style={styles.backButton}>Back</Text>
+      )}
+      <View style={styles.backButtonContainer}>
+        <BlurView intensity={50} tint="dark" style={styles.blurWrapper}>
+          <Pressable onPress={() => router.push('/')}>
+            <Text style={styles.backButtonText}>Back</Text>
           </Pressable>
-        </View>
+        </BlurView>
+      </View>
     </LinearGradient>
   );
 }
@@ -87,6 +104,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: 'white',
+    fontFamily: 'TemperatureFont',
     fontSize: 20,
     marginBottom: 10,
     textAlign: 'center',
@@ -100,33 +118,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
+    fontFamily: 'TemperatureFont',
     color: 'white',
     fontSize: 25,
   },
   temperature: {
     fontSize: 120,
+    fontFamily: 'TemperatureFont',
     fontWeight: 'bold',
     shadowColor: 'black',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.5,
     color: 'white',
     marginTop: 10,
     textAlign: 'center',
   },
-  backButton: {
-    position: 'absolute',
-    top: -785,
-    backgroundColor: 'red',
-    borderRadius: 20,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+  blurWrapper: {
+    borderRadius: 30,
+    overflow: 'hidden',
+    shadowColor: 'red',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  backButtonText: {
+    paddingVertical: 10,
+    paddingHorizontal: 150,
+    backgroundColor: 'black',
+    borderRadius: 30,
     color: 'white',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   backButtonContainer: {
     position: 'absolute',
-    left: 20,
-    bottom: 20,
+    bottom: 40,
   },
 });

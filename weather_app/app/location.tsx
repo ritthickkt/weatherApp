@@ -48,7 +48,7 @@ export default function LocationScreen() {
           Latitude: {coordinates.latitude}, Longitude: {coordinates.longitude}
         </Text>
       )}
-      {error && <Text style={{ color: 'red' }}>{error}</Text>}
+      {error && <Text style={{ color: 'blue' }}>{error}</Text>}
     </View>
   );
 }
