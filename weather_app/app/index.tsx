@@ -8,7 +8,9 @@ export default function WelcomeScreen() {
   return (
     <View style={styles.container}> 
       <Stack.Screen options={{ headerShown: false }} />
-      <Text style={styles.text}>Welcome to the weather app</Text>
+      <Text className="text-white text-2xl mb-5">
+        Welcome to the weather app
+      </Text> 
       <Pressable 
         style={styles.button}
         onPress={() => router.push('/location')}

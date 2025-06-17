@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import entryScreen from './(tabs)/entryScreen';
+import entryScreen from './entryScreen';
 import { router, usePathname } from 'expo-router';
 
 export default function LocationScreen() {
@@ -15,7 +15,7 @@ export default function LocationScreen() {
     if (data.results && data.results.length > 0) {
       const { latitude, longitude } = data.results[0];
       router.push({
-        pathname: '/(tabs)/entryScreen',
+        pathname: '/entryScreen',
         params: { cityName, latitude, longitude },
       })
     } else {
@@ -48,7 +48,7 @@ export default function LocationScreen() {
           Latitude: {coordinates.latitude}, Longitude: {coordinates.longitude}
         </Text>
       )}
-      {error && <Text style={{ color: 'red' }}>{error}</Text>}
+      {error && <Text style={{ color: 'blue' }}>{error}</Text>}
     </View>
   );
 }
