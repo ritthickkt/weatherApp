@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView, BackHandler, Animated } from 'react-native';
 import { fetchWeatherApi } from 'openmeteo';
 import { useFonts } from 'expo-font';
