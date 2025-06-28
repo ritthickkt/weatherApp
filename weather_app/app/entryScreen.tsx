@@ -1,12 +1,84 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView, BackHandler, Animated } from 'react-native';
-import { fetchWeatherApi } from 'openmeteo';
-import { useFonts } from 'expo-font';
 import { BlurView } from 'expo-blur';
-import { useSharedValue, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated';
+import { useFonts } from 'expo-font';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
+import LottieView from 'lottie-react-native';
+import { fetchWeatherApi } from 'openmeteo';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+// Function to get weather-appropriate gradient colors
+const getWeatherGradient = (weatherCode: number): readonly [string, string, string] => {
+  // Clear sky
+  if (weatherCode === 0) {
+    return ['rgba(135, 206, 235, 1)', 'rgba(87, 154, 255, 1)', 'rgba(0, 123, 255, 1)'] as const; // Blue sky gradient
+  }
+  // Partly cloudy
+  else if (weatherCode >= 1 && weatherCode <= 3) {
+    return ['rgba(176, 196, 222, 1)', 'rgba(135, 206, 235, 1)', 'rgba(100, 149, 237, 1)'] as const; // Light blue with clouds
+  }
+  // Foggy
+  else if (weatherCode === 45 || weatherCode === 48) {
+    return ['rgba(192, 192, 192, 1)', 'rgba(169, 169, 169, 1)', 'rgba(128, 128, 128, 1)'] as const; // Gray fog
+  }
+  // Drizzle
+  else if (weatherCode >= 51 && weatherCode <= 55) {
+    return ['rgba(105, 105, 105, 1)', 'rgba(47, 79, 79, 1)', 'rgba(25, 25, 112, 1)'] as const; // Dark gray with blue
+  }
+  // Rain
+  else if (weatherCode >= 61 && weatherCode <= 65) {
+    return ['rgba(105, 105, 105, 1)', 'rgba(64, 64, 64, 1)', 'rgba(47, 47, 47, 1)'] as const; // Gloomy grey rain
+  }
+  // Snow
+  else if (weatherCode >= 71 && weatherCode <= 75) {
+    return ['rgba(240, 248, 255, 1)', 'rgba(176, 196, 222, 1)', 'rgba(135, 206, 235, 1)'] as const; // Light blue snow
+  }
+  // Thunderstorm
+  else if (weatherCode > 75) {
+    return ['rgba(47, 79, 79, 1)', 'rgba(25, 25, 112, 1)', 'rgba(0, 0, 0, 1)'] as const; // Dark storm
+  }
+  // Default gradient (night time or unknown)
+  else {
+    return ['rgba(2, 0, 36, 1)', 'rgba(9, 9, 121, 1)', 'rgba(0, 212, 255, 1)'] as const; // Original gradient
+  }
+};
+
+// Function to get weather-appropriate JSON animation
+const getWeatherAnimation = (weatherCode: number) => {
+  // Clear sky
+  if (weatherCode === 0) {
+    return require('../assets/clear-sky.json');
+  }
+  // Partly cloudy
+  else if (weatherCode >= 1 && weatherCode <= 3) {
+    return require('../assets/partly-cloudy.json');
+  }
+  // Foggy
+  else if (weatherCode === 45 || weatherCode === 48) {
+    return require('../assets/Foggy.json');
+  }
+  // Drizzle
+  else if (weatherCode >= 51 && weatherCode <= 55) {
+    return require('../assets/drizzle.json');
+  }
+  // Rain
+  else if (weatherCode >= 61 && weatherCode <= 65) {
+    return require('../assets/Rain.json');
+  }
+  // Snow
+  else if (weatherCode >= 71 && weatherCode <= 75) {
+    return require('../assets/snow.json');
+  }
+  // Thunderstorm
+  else if (weatherCode > 75) {
+    return require('../assets/ThunderStorm.json');
+  }
+  // Default to clear sky for other conditions
+  else {
+    return require('../assets/clear-sky.json');
+  }
+};
 
 export default function LocationScreen() {
   const [fontsLoaded] = useFonts({
@@ -15,7 +87,7 @@ export default function LocationScreen() {
 
   const {cityName, latitude, longitude } = useLocalSearchParams();
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [weather, setWeather] = useState<{ time: Date; temperature2m: number } | null>(null);
+  const [weather, setWeather] = useState<{ time: Date; temperature2m: number; weatherCode: number } | null>(null);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -31,7 +103,7 @@ export default function LocationScreen() {
     const params = {
       latitude: latitude,
       longitude: longitude,
-      current: 'temperature_2m',
+      current: ['temperature_2m', 'weather_code'],
     };
     const url = 'https://api.open-meteo.com/v1/forecast';
     const responses = await fetchWeatherApi(url, params);
@@ -39,10 +111,14 @@ export default function LocationScreen() {
     const response = responses[0];
     const utcOffsetSeconds = response.utcOffsetSeconds();
     const current = response.current();
-    setWeather({
-      time: new Date((Number(current.time()) + utcOffsetSeconds) * 1000),
-      temperature2m: current.variables(0).value(),
-    });
+    
+    if (current) {
+      setWeather({
+        time: new Date((Number(current.time()) + utcOffsetSeconds) * 1000),
+        temperature2m: current.variables(0)?.value() || 0,
+        weatherCode: current.variables(1)?.value() || 0,
+      });
+    }
     setLoading(false);
   };
 
@@ -61,11 +137,7 @@ export default function LocationScreen() {
 
   return (
     <LinearGradient
-      colors={[
-        'rgba(2, 0, 36, 1)',       
-        'rgba(9, 9, 121, 1)',      
-        'rgba(0, 212, 255, 1)'     
-      ]}
+      colors={getWeatherGradient(weather?.weatherCode || 0)}
       start={{ x: 0, y: 1 }}
       end={{ x: 0, y: 0 }}
       style={styles.container}
@@ -77,6 +149,12 @@ export default function LocationScreen() {
       {loading && <ActivityIndicator color="white" />}
       {weather && (
         <View>
+          <LottieView 
+            source={getWeatherAnimation(weather.weatherCode)} 
+            style={styles.weatherImage}
+            autoPlay
+            loop
+          />
           <Text style={styles.temperature}>{weather.temperature2m.toFixed(0)}</Text>
           <Text style={styles.text}>{weather.time.toDateString()}</Text>
         </View>
@@ -153,5 +231,12 @@ const styles = StyleSheet.create({
   backButtonContainer: {
     position: 'absolute',
     bottom: 40,
+  },
+  weatherImage: {
+    width: 120,
+    height: 120,
+    alignSelf: 'center',
+    marginBottom: 20,
+    resizeMode: 'contain',
   },
 });
